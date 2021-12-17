@@ -1,5 +1,4 @@
 #!/usr/bin/python
-import time
 from config import domain_port_droplet
 from datetime import datetime, timedelta
 import socket
