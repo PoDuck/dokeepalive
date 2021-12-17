@@ -23,12 +23,6 @@ def main():
                     droplet.reboot()
                     with open("dokeepalive.log", "a+") as logfile:
                         logfile.write("Site " + domain + " down - " + str(now) + "\n")
-        # if not port_is_open(443):
-        #     now = datetime.now()
-        #     droplet.reboot()
-        #     with open("dokeepalive.log", "a+") as logfile:
-        #         logfile.write("Site down - " + str(now))
-        # time.sleep(300)
 
 
 if __name__ == '__main__':
