@@ -1,12 +1,17 @@
-#!/usr/bin/python
 from config import frequency, domain_port_droplet
 from datetime import datetime, timedelta
-import socket
+from scapy.all import *
 
 
 def port_is_open(domain, port):
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        return s.connect_ex((domain, port)) == 0
+    ip = socket.gethostbyname(domain)
+    request = IP(dst=ip)/TCP(dport=port, flags="S")
+    resp = sr1(request, timeout=1, verbose=0)
+    try:
+        if resp.getlayer(TCP).flags == "SA":
+            return True
+    except AttributeError:
+        return False
 
 
 def main():
