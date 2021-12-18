@@ -3,13 +3,13 @@ import digitalocean
 # How frequent you wish to poll the server in minutes.  Keep in mind that a server that is down will
 # take about five minutes to come back as not open, so the server will be down at least 5 minutes, plus however
 # many minutes it was down since the last check.
-frequency = 5
+frequency = $FREQUENCY
 
 # DO_TOKEN is your digital ocean API token
 DO_Token = "$DO_TOKEN"
 
 # add list of "[DOMAIN, PORT, DROPLET_ID]" for each site
-domain_port_droplet = $list
+domain_port_droplet = $LIST
 
 # Do not edit below this line
 manager = digitalocean.Manager(token=DO_Token)
