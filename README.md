@@ -8,3 +8,37 @@ Due to this script using low level network access, you must run this script as r
 4. `python create_config.py` and follow instructions.
 5. add `@reboot sleep 60 && /path/to/virtualenv/python /path/to/dokeepalive.py` to root's crontab.  change the sleep period (60) to suit the amount of time, in seconds, your system may take to fully boot.
 6. Reboot the machine, or run dokeepalive.py.
+
+Alternatively, you can add a systemd file to start things.
+
+`nano /lib/systemd/system/dokeepalive.service`
+
+In that file, paste the following:
+```
+[Unit]
+Description=DOKeepalive Service
+After=multi-user.target
+
+[Service]
+User=root
+Group=root
+Type=simple
+Restart=always
+ExecStart=/path/to/virtual/python /path/to/dokeepalive/dokeepalive.py > /path/to/dokeepalive/dokeepalive.error.log 2>&1
+WorkingDirectory=/path/to/dokeepalive/
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Then run the following commands:
+
+`sudo systemctl daemon-reload`
+
+`sudo systemctl enable dokeepalive.service`
+
+`sudo systemctl start dokeepalive.service`
+
+Check the status with:
+
+`sudo systemctl status dokeepalive.service`
