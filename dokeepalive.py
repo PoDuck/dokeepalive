@@ -1,22 +1,21 @@
+from datetime import datetime, timedelta
 import logging
-from datetime import timedelta
-from scapy.all import *
+import socket
 import digitalocean
 import json
 import re
 
 
-# logging.basicConfig(filename="dokeepalive.log", filemode="a", format='%(asctime)s - %(message)s', level=logging.INFO)
-formatter = logging.Formatter('%asctime)s %(levelname)s %(message)s')
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 
 
 def logger_setup(name, log_file, level=logging.INFO):
     handler = logging.FileHandler(log_file)
     handler.setFormatter(formatter)
-    logger = logging.getLogger(name)
-    logger.setLevel(level)
-    logger.addHandler(handler)
-    return logger
+    current_logger = logging.getLogger(name)
+    current_logger.setLevel(level)
+    current_logger.addHandler(handler)
+    return current_logger
 
 
 logger = logger_setup('info_logger', 'access.log')
@@ -24,14 +23,13 @@ error_logger = logger_setup('error_logger', 'error.log', logging.ERROR)
 
 
 def port_is_open(domain, port):
-    ip = socket.gethostbyname(domain)
-    request = IP(dst=ip)/TCP(dport=port, flags="S")
-    resp = sr1(request, timeout=1, verbose=0)
-    try:
-        if resp.getlayer(TCP).flags == "SA":
-            return True
-    except AttributeError:
-        return False
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(5.0)
+    result = sock.connect_ex((domain, port))
+    sock.close()
+    if result == 0:
+        return True
+    return False
 
 
 class Site(object):
