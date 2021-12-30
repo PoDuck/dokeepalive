@@ -25,7 +25,7 @@ To create the systemd service, create a file:
 
 In that file, paste the following:
 
-```
+```ini
 [Unit]
 Description=DOKeepalive Service
 After=multi-user.target
