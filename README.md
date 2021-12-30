@@ -2,9 +2,6 @@ DO Keepalive keeps tabs on DigitalOcean servers that have a tendency to freeze u
 availability. It will check if a given port is open, and if it isn't, it will use the DO(Digitalocean) API to reboot the
 server.
 
-Due to this script using low level network access, you must run this script as root. You can do this from the command
-line by using sudo, add it to root's crontab with `sudo crontab -e`, or create a systemd service with root as the user.
-
 ### Simple Setup Instructions:
 
 1. Clone this repository into a folder on your stable server.
@@ -26,8 +23,8 @@ Description=DOKeepalive Service
 After=multi-user.target
 
 [Service]
-User=root
-Group=root
+User=USER_WITH_ACCESS
+Group=GROUP_WITH_ACCESS
 Type=simple
 Restart=always
 ExecStart=/path/to/virtual/python /path/to/dokeepalive/dokeepalive.py > /path/to/dokeepalive/dokeepalive.error.log 2>&1
@@ -49,7 +46,7 @@ Check the status with:
 
 `sudo systemctl status dokeepalive.service`
 
-###### Configuration file
+### Configuration file
 
 dokeepalive will look for a configuration file in its home directory called `dokeepalive.conf`. It can handle multiple
 users, and multiple sites per user.
