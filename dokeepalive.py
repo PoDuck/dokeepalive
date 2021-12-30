@@ -1,15 +1,17 @@
+#!/usr/bin/env python3
+import os
+import sys
 from datetime import datetime, timedelta
 import logging
 import socket
 import digitalocean
 import json
 import re
-
-
-formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+from settings import *
 
 
 def logger_setup(name, log_file, level=logging.INFO):
+    formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
     handler = logging.FileHandler(log_file)
     handler.setFormatter(formatter)
     current_logger = logging.getLogger(name)
@@ -18,8 +20,8 @@ def logger_setup(name, log_file, level=logging.INFO):
     return current_logger
 
 
-logger = logger_setup('info_logger', 'access.log')
-error_logger = logger_setup('error_logger', 'error.log', logging.ERROR)
+logger = logger_setup('info_logger', access_log_location)
+error_logger = logger_setup('error_logger', error_log_location, logging.ERROR)
 
 
 def port_is_open(domain, port):
@@ -40,16 +42,19 @@ class Site(object):
         self.droplet = self.manager.get_droplet(droplet_id=self.droplet_id)
         self.host = site_data['host']
         self.port = int(site_data['port'])
-        temp = re.compile("([0-9]+)([a-zA-Z]+)")
-        res = temp.match(site_data['interval']).groups()
-        if res[1] == "s":
-            self.interval = timedelta(seconds=int(res[0]))
-        elif res[1] == "m":
-            self.interval = timedelta(minutes=int(res[0]))
-        elif res[1] == "h":
-            self.interval = timedelta(hours=int(res[0]))
-        elif res[1] == "d":
-            self.interval = timedelta(hours=int(res[0]))
+        matches = re.findall("([0-9]+)([a-zA-Z]+)", site_data['interval'], re.DOTALL)
+        self.interval = timedelta(seconds=0)
+        for res in matches:
+            if res[1] == "s":
+                self.interval += timedelta(seconds=int(res[0]))
+            elif res[1] == "m":
+                self.interval += timedelta(minutes=int(res[0]))
+            elif res[1] == "h":
+                self.interval += timedelta(hours=int(res[0]))
+            elif res[1] == "d":
+                self.interval += timedelta(days=int(res[0]))
+            else:
+                self.interval += timedelta(minutes=5)
         self.last_checked = datetime.now() - self.interval
 
     def reboot(self):
@@ -81,11 +86,18 @@ class User(object):
 
 class UsersAndSites(object):
     def __init__(self):
-        with open("dokeepalive.conf") as config_data:
-            self.apis = json.load(config_data)
         self.users = []
-        for user in self.apis:
-            self.users.append(User(user))
+        if not os.path.isdir(conf_path):
+            os.mkdir(conf_path)
+        for filename in os.listdir(conf_path):
+            with open(os.path.join(conf_path, filename), "r") as config_data:
+                self.apis = json.load(config_data)
+            for user in self.apis:
+                self.users.append(User(user))
+        if not self.users:
+            error_logger.error("No configuration file found")
+            print("No configuration file found.")
+            sys.exit(1)
 
     def update(self):
         for user in self.users:
