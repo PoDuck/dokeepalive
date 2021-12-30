@@ -3,7 +3,6 @@ import json
 import os
 import argparse
 
-
 conf_path = os.path.join(os.getcwd(), 'conf')
 
 
@@ -23,8 +22,10 @@ def main():
     parser.add_argument("-t", "--token", metavar="API_TOKEN", help="Digitalocean API token")
     parser.add_argument("-s", "--site", metavar=("DROPLET_ID", "HOST", "PORT", "INTERVAL"), nargs=4,
                         help="enter droplet_id host port interval", action=Config)
+    parser.add_argument("-f", "--file", metavar="FILE_NAME",
+                        help="File name of config file.  Default=" + os.path.join(conf_path, 'dokeepalive.conf'), default=os.path.join(conf_path, 'dokeepalive.conf'))
     args = parser.parse_args()
-    if args:
+    if args.token and args.site:
         conf = [
             {
                 "token": args.token,
@@ -36,8 +37,9 @@ def main():
         print(
             "This will help you create a configuration file for dokeepalive.  It will be stored in the ./conf/dokeepalive directory.")
         tokens_finished = False
+        num_users = 1
         while not tokens_finished:
-            token = input("Enter digital ocean API token for first user. (Blank line to quit): ")
+            token = input(f"Enter digital ocean API token for user #{num_users}. (Blank line to quit): ")
             if token != '':
                 sites_finished = False
                 sites = []
@@ -64,12 +66,12 @@ def main():
                             'sites': sites
                         }
                     )
+                num_users += 1
             else:
                 tokens_finished = True
-    print(os.path.join(conf_path, 'dokeepalive.conf'))
     if not os.path.isdir(conf_path):
         os.mkdir(conf_path, 0o775)
-    with open(os.path.join(conf_path, 'dokeepalive.conf'), 'w') as conf_file:
+    with open(args.file, 'w') as conf_file:
         json.dump(conf, conf_file, indent=2)
 
 
